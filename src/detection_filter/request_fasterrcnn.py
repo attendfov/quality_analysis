@@ -4,10 +4,10 @@ import os
 import sys
 import cv2
 import time
+import json
 import numpy as np
 from PIL import Image
 import multiprocessing
-
 
 
 class RequestFastercnn:
@@ -23,12 +23,12 @@ class RequestFastercnn:
         self.save_file = params['save_file']
         self.restore_type = params['restore_type']
         self.restore_file = params['restore_file']
-        assert (restore_type in ['request', 'file', 'merge'])
+        assert (self.restore_type in ['request', 'file', 'merge'])
 
         self.first_request = True
 
         self.client = None
-        if restore_type == 'request':
+        if self.restore_type == 'request':
             client_url = params['client_url']
             client_timeout = 5000
             if 'timeout' in params:
@@ -46,7 +46,7 @@ class RequestFastercnn:
     def fetch_detection(self, image_files):
         if self.restore_type == 'request' and self.first_request:
             self.first_request = False
-            self.data_map = self.multi_request(self, image_files, process_count=self.proc_count)
+            self.data_map = self.multi_request(image_files, process_count=self.proc_count)
             if not os.path.isfile(self.save_file):
                 self.save_to_file(self, self.data_map, self.save_file)
 
@@ -100,7 +100,7 @@ class RequestFastercnn:
     def multi_request(self, image_files, process_count=3):
 
         solo = (len(image_files)+process_count)/process_count + 1
-        pool = multiprocessing.pool(processes=process_count)
+        pool = multiprocessing.Pool(processes=process_count)
 
         results = []
         for i in range(process_count):

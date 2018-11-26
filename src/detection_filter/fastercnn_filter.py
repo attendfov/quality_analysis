@@ -21,51 +21,42 @@ class FastercnnFiter(Filter):
     def __init__(self, params, logger):
         assert(isinstance(params, dict))
 
-        self.field_name_str = params['field_name_keys']
+        self.proc_field_str = params['proc_field_keys']
+        self.save_field_str = params['save_field_keys']
         self.bad_iou_thr = 0.35
         if 'bad_iou_thr' in params:
             self.bad_iou_thr = float(params['bad_iou_thr'])
 
         request_inst = RequestFastercnn(params, logger)
 
+        self.detect_list = [[xmin,ymin,xmax,ymax,label]]
+
+
+    def detect_match(self, bbox, detect_list):
+
+
     def run_filter(self, data_maps):
         assert(isinstance(data_maps, dict))
 
-        for image_key in data_maps:
-            for label_key in data_maps[image_key]:
-                if label_key not in self.field_name_keys:
-                    del data_maps[image_key][label_key]
-                    continue
-
-                if 'contents' not in data_maps[image_key][label_key]:
-                    continue
-
-                if 'chardict_info' not in data_maps[image_key][label_key]:
-                    data_maps[image_key][label_key]['chardict_info'] = []
-
-                for index, content in enumerate(data_maps[image_key][label_key]['contents']):
-                    unk_count = 0
-                    bad_count = 0
-                    corr_count = 0
-
-                    if content is None or len(content) == 0:
-                        data_maps[image_key][label_key]['chardict_info'].append([unk_count, bad_count, corr_count])
-                        continue
-
-                    for char in content:
-                        if char in self.char_dict:
-                            corr_count = corr_count + 1
-                        elif char in self.unk_char_set:
-                            unk_count = unk_count + 1
-                        else:
-                            bad_count = bad_count + 1
-
-                    data_maps[image_key][label_key]['chardict_info'].append([unk_count, bad_count, corr_count])
-
-        # add dicision moudle to choose the data
-        
         self.save_datamap = {}
         self.abad_datamap = {}
+        for image_key in data_maps:
+            for label_key in data_maps[image_key]:
+                save_types = []
+                save_points = []
+                save_contents = []
+
+                abad_types = []
+                abad_points = []
+                abad_contents = []
+
+                types = data_maps[image_key][label_key]['types']
+                points = data_maps[image_key][label_key]['points']
+                contents = data_maps[image_key][label_key]['contents']
+
+                for
+        
+
         
         for image_key in data_maps:
             for label_key in data_maps[image_key]:
