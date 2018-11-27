@@ -12,13 +12,10 @@ import multiprocessing
 class RequestFastercnn:
     def __init__(self, params, logger=None):
         assert(isinstance(params, dict))
-        cognition_dir = params['cognition_dir']
-        assert(os.path.isdir(cognition_dir))
-        cognition_dir = os.path.abspath(cognition_dir)
-        sys.path.append(cognition_dir)
-        import cognition.framework as cf
 
-        self.proc_count = params['process_count']
+        self.proc_count = 2
+        if 'proc_count' in params:
+            self.proc_count = params['process_count']
         self.save_file = params['save_file']
         self.restore_type = params['restore_type']
         self.restore_file = params['restore_file']
@@ -27,7 +24,12 @@ class RequestFastercnn:
         self.first_request = True
 
         self.client = None
-        if self.restore_type == 'request':
+        if self.restore_type in ('request', 'merge'):
+            cognition_dir = params['cognition_dir']
+            assert (os.path.isdir(cognition_dir))
+            cognition_dir = os.path.abspath(cognition_dir)
+            sys.path.append(cognition_dir)
+            import cognition.framework as cf
             client_url = params['client_url']
             client_timeout = 5000
             if 'timeout' in params:
@@ -36,16 +38,26 @@ class RequestFastercnn:
             self.client = cf.SlaveClient(client_url, client_timeout)
 
         self.data_map = None
-
-        if self.restore_type == 'file':
+        if self.restore_type in ('file', 'merge'):
             self.data_map = self.restore_from_file(self.restore_file)
-            if not os.path.isfile(self.save_file):
-                self.save_to_file(self, self.data_map, self.save_file)
 
     def fetch_detection(self, image_files):
+
         if self.restore_type == 'request' and self.first_request:
             self.first_request = False
-            self.data_map = self.multi_request(image_files, process_count=self.proc_count)
+
+            request_list = []
+            for line in image_files:
+                image_key = os.path.basename(image_files.strip())
+                if image_key not in self.data_map:
+                    request_list.append(line)
+
+            #request_data_map = self.multi_request(request_list, process_count=self.proc_count)
+            request_data_map = self.request(request_list)
+
+            for image_key in request_data_map:
+                self.data_map[image_key] = request_data_map[image_key]
+
             if not os.path.isfile(self.save_file):
                 self.save_to_file(self, self.data_map, self.save_file)
 
