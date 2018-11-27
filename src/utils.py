@@ -31,7 +31,7 @@ def iou(bbox1, bbox2):
 def iou_test():
 
     bbox1 = [10,10,20,20]
-    bbox2 = [10,10,20,20]
+    bbox2 = [10,10,15,15]
 
     print(iou(bbox1, bbox2))
 

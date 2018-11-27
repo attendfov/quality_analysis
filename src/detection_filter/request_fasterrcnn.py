@@ -9,7 +9,6 @@ import numpy as np
 from PIL import Image
 import multiprocessing
 
-
 class RequestFastercnn:
     def __init__(self, params, logger=None):
         assert(isinstance(params, dict))
